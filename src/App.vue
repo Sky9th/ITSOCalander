@@ -1,32 +1,60 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/calendar">calendar</router-link>
-    </div>
-    <router-view/>
-  </div>
+  <el-container :style="{height: windowHeight+'px'}">
+    <el-aside  width="300px">
+      <sMenu></sMenu>
+    </el-aside>
+
+    <el-container>
+      <el-header :height="'80px'">
+        <bar></bar>
+      </el-header>
+
+      <el-main>
+        <el-card>
+          <router-view></router-view>
+        </el-card>
+      </el-main>
+
+      <el-footer style="margin-top: 15px">
+        <el-card align="center">Team: @Kaku, @Tabor, @Noct, @Vito</el-card>
+      </el-footer>
+    </el-container>
+  </el-container>
 </template>
 
+
+
+<script>
+  import bar from "./views/home/Bar";
+  import sMenu from "./views/home/Menu";
+  import api from './service/http'
+
+  export default {
+    data () {
+      return{
+        windowHeight: 500
+      }
+    },
+    components:{
+      bar,
+      sMenu
+    },
+    mounted () {
+      window.addEventListener('resize', this.resize);
+      this.resize();
+      api.$('eventList').then(() => {
+        api.hideLoading();
+      })
+    },
+    methods: {
+      resize () {
+        this.windowHeight = window.innerHeight - 20
+      }
+    }
+  }
+</script>
+
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-#nav {
-  padding: 30px;
-}
-
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
+  body { background: #f9f9f9; }
+  .el-main { padding:0 20px; }
 </style>
