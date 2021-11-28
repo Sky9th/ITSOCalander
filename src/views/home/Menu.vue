@@ -1,5 +1,5 @@
 <template>
-    <el-card>
+    <el-card style="height:99.7%">
         <div class="system-title" slot="header">Project for Topic 2</div>
         <div class="menu">
             <el-menu default-active="1-1">

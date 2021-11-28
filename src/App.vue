@@ -39,8 +39,13 @@
       sMenu
     },
     mounted () {
-      console.log(document.body)
-      this.windowHeight = window.innerHeight - 20
+      window.addEventListener('resize', this.resize);
+      this.resize();
+    },
+    methods: {
+      resize () {
+        this.windowHeight = window.innerHeight - 20
+      }
     }
   }
 </script>
