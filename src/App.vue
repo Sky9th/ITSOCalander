@@ -5,7 +5,7 @@
     </el-aside>
 
     <el-container>
-      <el-header :height="'80px'">
+      <el-header :height="'60px'">
         <bar></bar>
       </el-header>
 
@@ -27,7 +27,6 @@
 <script>
   import bar from "./views/home/Bar";
   import sMenu from "./views/home/Menu";
-  import api from './service/http'
 
   export default {
     data () {
@@ -42,9 +41,6 @@
     mounted () {
       window.addEventListener('resize', this.resize);
       this.resize();
-      api.$('eventList').then(() => {
-        api.hideLoading();
-      })
     },
     methods: {
       resize () {
