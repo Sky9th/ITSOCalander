@@ -35,7 +35,7 @@ export var apiList = {
             method: 'post'
         },
         'listEvents': {
-            url: '/v1/canlander-event',
+            url: '/v1/canlander-events',
             method: 'get'
         },
         'createEvents': {
