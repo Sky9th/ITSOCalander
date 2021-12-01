@@ -1,10 +1,16 @@
 <template>
 	<div>
-		<el-row :gutter="5">
+		<el-row v-if="!editModel.show" :gutter="5">
 			<el-col :span="24" id="calendar-option">
 				<el-button @click="today">Today</el-button>
 				<el-button @click="timeSlot">Create</el-button>
 				<el-button @click="timeSlotEdit">Edit time slot</el-button>
+			</el-col>
+		</el-row>
+		<el-row v-if="editModel.show" :gutter="5">
+			<el-col :span="24" id="edit-option">
+				<el-button @click="today">Cancel</el-button>
+				<el-button @click="timeSlot">Completely</el-button>
 			</el-col>
 		</el-row>
 		<el-row :gutter="5">
@@ -19,7 +25,7 @@
 					<el-input v-model="pageForm.name"></el-input>
 				</el-form-item>
 				<el-form-item label="Date range" prop="dateRange">
-					<el-date-picker v-model="pageForm.dateRange" type="daterange" range-separator="To"
+					<el-date-picker v-model="pageForm.dateRange" type="daterange" range-separator="~"
 						start-placeholder="Begin date" end-placeholder="End date">
 					</el-date-picker>
 				</el-form-item>
@@ -59,7 +65,6 @@
 	import dayGridPlugin from '@fullcalendar/daygrid'
 	import interactionPlugin from '@fullcalendar/interaction'
 
-	let events = [];
 	// let calendarEl = document.getElementById('calendar');
 	export default {
 		components: {
@@ -98,7 +103,7 @@
 					// 	week: '周',
 					// 	day: '天'
 					// },
-					events: events,
+					events: [],
 					// dayMaxEventRows: true, // for all non-TimeGrid views
 					views: {
 						dayGrid: {
@@ -132,6 +137,10 @@
 						message: 'Date range could not empty',
 						trigger: 'blur'
 					}]
+				},
+				editModel: {
+					show: false,
+					events: []
 				}
 			}
 		},
@@ -294,16 +303,19 @@
 				}
 			},
 			timeSlotEdit: function() {
-				let newEvents = []
+				this.editModel.events = []
 				let calendarApi = this.$refs.fullCalendar.getApi();
-				// let events = calendarApi.getEvents()
-				events.forEach(item => {
-					item.editable = true;
-					newEvents.push(item);
+				let oldEvents = calendarApi.getEvents()
+				console.log(oldEvents)
+				oldEvents.forEach(item => {
+					this.editModel.events.push(item);
+					item.remove();
 				})
-				calendarApi.setOption('events', newEvents);
+				calendarApi.setOption('events', this.editModel.events);
+				calendarApi.setOption('editable', true);
 				calendarApi.setOption('selectable', false);
 				calendarApi.setOption('eventClick', () => {});
+				this.editModel.show = true;
 			},
 			timeSlotDelete: function() {
 				this.$confirm(
@@ -412,7 +424,7 @@
 							startDateTime: this.formatDate(this.pageForm.dateRange[0]),
 							endDateTime: this.formatDate(this.pageForm.dateRange[1])
 						}
-						this.$api.$('amendEvent', request).then((response) => {
+						this.$api.$('amendEvent', request,this.pageForm.id).then((response) => {
 							let data = response.data.data;
 							let dateRange = this.dateRangeChange({
 								begin: data.startDateTime,

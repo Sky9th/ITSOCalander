@@ -67,7 +67,7 @@ export default {
         Vue.prototype.$api = this
     },
 
-    $ (endpoint, data, param) {
+    $ (endpoint, data, param, pathParam) {
         console.log('--------api endpoint:' + endpoint + '-----------')
         if( !apiList[process.env.NODE_ENV]) { console.log('----------no env api list------------');return false; }
         let api = apiList[process.env.NODE_ENV][endpoint]
@@ -86,6 +86,11 @@ export default {
                 url = url.replace(val, replace[p[1]] ? replace[p[1]] : '')
             })
         }
+		if(pathParam && pathParam.length > 0){
+			pathParam.forEach((val) => {
+				url = url.replace("{" + val.key + "}", val.value);
+			})
+		}
         return this.request(api.method, url, data, param)
     },
 
