@@ -4,17 +4,17 @@
 			<el-col :span="24" id="calendar-option">
 				<el-button @click="today">Today</el-button>
 				<el-button @click="timeSlot">Create</el-button>
-				<el-button @click="timeSlotEdit">Edit time slot</el-button>
+				<el-button @click="toEdit">Edit</el-button>
 			</el-col>
 		</el-row>
 		<el-row v-if="editModel.show" :gutter="5">
 			<el-col :span="24" id="edit-option">
-				<el-button @click="today">Cancel</el-button>
-				<el-button @click="timeSlot">Completely</el-button>
+				<el-button @click="cancelEdit">Cancel</el-button>
+				<el-button type="success" @click="completeEdit">Done</el-button>
 			</el-col>
 		</el-row>
 		<el-row :gutter="5">
-			<el-col :span="20" id="calendar-main">
+			<el-col :span="24" id="calendar-main">
 				<FullCalendar id="calendar" ref="fullCalendar" :options="calendarOptions" />
 			</el-col>
 		</el-row>
@@ -280,6 +280,37 @@
 				let calendarApi = this.$refs.fullCalendar.getApi();
 				calendarApi.today();
 			},
+			toEdit: function() {
+				this.editModel.events = []
+				let calendarApi = this.$refs.fullCalendar.getApi();
+				let oldEvents = calendarApi.getEvents();
+				oldEvents.forEach(item => {
+					this.editModel.events.push(item);
+					// item.remove();
+				})
+				// calendarApi.setOption('events', this.editModel.events);
+				calendarApi.setOption('editable', true);
+				calendarApi.setOption('selectable', false);
+				calendarApi.setOption('eventClick', () => {});
+				this.editModel.show = true;
+			},
+			completeEdit: function() {
+				this.$alert('Coming soon!', 'success', {
+					confirmButtonText: 'Comfirm'
+				});
+			},
+			cancelEdit: function() {
+				let calendarApi = this.$refs.fullCalendar.getApi();
+				let oldEvents = calendarApi.getEvents();
+				oldEvents.forEach(item => {
+					item.remove();
+				})
+				calendarApi.setOption('events', this.editModel.events);
+				calendarApi.setOption('editable', false);
+				calendarApi.setOption('selectable', true);
+				calendarApi.setOption('eventClick', this.handleEventClick);
+				this.editModel.show = false;
+			},
 			timeSlot: function() {
 				this.resetForm();
 				this.dialogOptions = {
@@ -302,21 +333,6 @@
 					title: "Create"
 				}
 			},
-			timeSlotEdit: function() {
-				this.editModel.events = []
-				let calendarApi = this.$refs.fullCalendar.getApi();
-				let oldEvents = calendarApi.getEvents()
-				console.log(oldEvents)
-				oldEvents.forEach(item => {
-					this.editModel.events.push(item);
-					item.remove();
-				})
-				calendarApi.setOption('events', this.editModel.events);
-				calendarApi.setOption('editable', true);
-				calendarApi.setOption('selectable', false);
-				calendarApi.setOption('eventClick', () => {});
-				this.editModel.show = true;
-			},
 			timeSlotDelete: function() {
 				this.$confirm(
 						'Are you sure you want to delete it？',
@@ -328,10 +344,9 @@
 					.then(() => {
 						this.$api.$(
 							'deleteEvent',
-							null, null, [{
-								key: "eventId",
-								value: this.pageForm.id
-							}]
+							null, {
+								eventId: this.pageForm.id
+							}
 						).then(() => {
 							let calendarApi = this.$refs.fullCalendar.getApi();
 							let event = calendarApi.getEventById(this.pageForm.id);
@@ -425,10 +440,9 @@
 							startDateTime: this.formatDate(this.pageForm.dateRange[0]),
 							endDateTime: this.formatDate(this.pageForm.dateRange[1])
 						}
-						this.$api.$('amendEvent', request, null, null, [{
-							key: "eventId",
-							value: this.pageForm.id
-						}]).then((response) => {
+						this.$api.$('amendEvent', request, {
+							eventId: this.pageForm.id
+						}).then((response) => {
 							let data = response.data.data;
 							let dateRange = this.dateRangeChange({
 								begin: data.startDateTime,
@@ -500,7 +514,27 @@
 			},
 			formatDate: function(time) {
 				let date = new Date(time);
-				return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+				var o = {
+					"M+": date.getMonth() + 1, //月份 
+					"d+": date.getDate(), //日 
+					"h+": date.getHours(), //小时 
+					"m+": date.getMinutes(), //分 
+					"s+": date.getSeconds(), //秒 
+					"q+": Math.floor((date.getMonth() + 3) / 3), //季度 
+					"S": date.getMilliseconds() //毫秒 
+				};
+				let fmt = "yyyy-MM-dd hh:mm:ss"
+				if (/(y+)/.test(fmt)) {
+					fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+				}
+				for (var k in o) {
+					if (new RegExp("(" + k + ")").test(fmt)) {
+						fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[
+							k]).length)));
+					}
+				}
+				return fmt;
+				// return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
 			}
 		}
 	}
@@ -562,5 +596,14 @@
 	.fc-h-event .fc-event-title {
 		word-break: break-all;
 		white-space: break-spaces;
+	}
+
+	#edit-option {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	#calendar-main {
+		margin-top: 10px;
 	}
 </style>
