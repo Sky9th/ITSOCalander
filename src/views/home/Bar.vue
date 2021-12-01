@@ -6,7 +6,6 @@
                     <el-button size="mini" type="primary" icon="el-icon-plus"></el-button>
                 </el-button-group>
 
-                {{sessionKey}}
                 <div class="avatar" @click="logoff()" v-if="sessionKey">
                     <el-avatar :size="30" class="avatar-item" title="logoff"><i class="el-icon-user-solid"></i></el-avatar>
                 </div>
