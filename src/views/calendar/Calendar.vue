@@ -495,23 +495,32 @@
 	.bg-low,
 	.bg-medium,
 	.bg-high,
-	.bg-fire{
+	.bg-fire {
 		border: none;
 		padding: 0 10px;
 	}
+
 	.bg-normal {
 		background-color: #a7a7a7;
 	}
+
 	.bg-low {
 		background-color: #3788d8;
 	}
+
 	.bg-medium {
 		background-color: #ffff4d;
+		color: #000000 !important;
+	}
+
+	.bg-medium.fc-h-event .fc-event-main {
 		color: #000000;
 	}
+
 	.bg-high {
 		background-color: #ff924d;
 	}
+
 	.bg-fire {
 		background-color: #ff4949;
 	}
@@ -532,5 +541,10 @@
 	.el-form textarea {
 		width: 350px;
 		height: 200px;
+	}
+
+	.fc-h-event .fc-event-title {
+		word-break: break-all;
+		white-space: break-spaces;
 	}
 </style>
