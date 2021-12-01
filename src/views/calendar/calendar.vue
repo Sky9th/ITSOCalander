@@ -15,13 +15,20 @@
 
 		<el-dialog :title="dialogOptions.title" :visible.sync="dialogOptions.visible" :before-close="handleDialogClose">
 			<el-form :model="pageForm" :rules="formRules" ref="pageForm" label-width="100px">
-				<el-form-item label="Title" class='inp-small' prop="title">
-					<el-input v-model="pageForm.title"></el-input>
+				<el-form-item label="Name" class='inp-small' prop="name">
+					<el-input v-model="pageForm.name"></el-input>
 				</el-form-item>
 				<el-form-item label="Date range" prop="dateRange">
 					<el-date-picker v-model="pageForm.dateRange" type="daterange" range-separator="To"
 						start-placeholder="Begin date" end-placeholder="End date">
 					</el-date-picker>
+				</el-form-item>
+				<el-form-item label="Reminder">
+					<el-switch v-model="pageForm.reminder" active-color="#13ce66"></el-switch>
+				</el-form-item>
+				<el-form-item label="Cycle">
+					<el-slider v-model="pageForm.cycle" :step="1" :max="4" :format-tooltip="this.getCycleValue"
+						show-stops></el-slider>
 				</el-form-item>
 				<el-form-item label="Assignee" class='inp-small'>
 					<el-input v-model="pageForm.assignee"></el-input>
@@ -35,12 +42,12 @@
 			</el-form>
 			<span v-if="dialogOptions.optionFlag === 'Create'" slot="footer" class="dialog-footer">
 				<el-button @click="dialogOptions.visible = false">Cancel</el-button>
-				<el-button type="success" @click="dialogOptions.submitFn()">Create</el-button>
+				<el-button type="success" @click="submitCreate()">Create</el-button>
 			</span>
 			<span v-else-if="dialogOptions.optionFlag === 'Edit'" slot="footer" class="dialog-footer">
 				<el-button @click="dialogOptions.visible = false">Cancel</el-button>
 				<el-button type="danger" plain @click="timeSlotDelete()">Delete</el-button>
-				<el-button type="primary" @click="dialogOptions.submitFn()">Edit</el-button>
+				<el-button type="primary" @click="submitEdit()">Edit</el-button>
 			</span>
 		</el-dialog>
 	</div>
@@ -73,7 +80,6 @@
 					// width: 800,
 					// height: 750,
 					//weekends: false, // initial value
-					themeSystem: 'bootstrap',
 					headerToolbar: {
 						start: 'prevYear,prev',
 						center: 'title',
@@ -99,14 +105,15 @@
 				},
 				dialogOptions: {
 					visible: false,
-					title: '',
-					optionFlag: '', //"Create" || "Edit"
-					submitFn: {}
+					name: '',
+					optionFlag: '' //"Create" || "Edit"
 				},
 				pageForm: {
 					id: '',
-					title: '',
+					name: '',
 					dateRange: [],
+					reminder: false,
+					cycle: 0,
 					location: '',
 					assignee: '',
 					remarks: ''
@@ -126,6 +133,28 @@
 			}
 		},
 		methods: {
+			getCycleValue: function(step) {
+				let name = ""
+				switch (step) {
+					case 1:
+						name = "Weekly";
+						break;
+					case 2:
+						name = "Monthly";
+						break;
+					case 3:
+						name = "Quarterly,";
+						break;
+					case 4:
+						name = "Yearly";
+						break;
+					case 0:
+					default:
+						name = "OneTime";
+						break;
+				}
+				return name;
+			},
 			handleDateClick: function(arg) {
 				// let calendarApi = this.$refs.fullCalendar.getApi();
 				console.log('date click! ' + arg.dateStr);
@@ -140,8 +169,10 @@
 				})
 				this.pageForm = {
 					id: event.id,
-					title: event.title,
+					name: event.extendedProps.name,
 					dateRange: [dateRange.begin, dateRange.end],
+					reminder: event.extendedProps.reminder,
+					cycle: event.extendedProps.cycle,
 					location: event.extendedProps.location,
 					assignee: event.extendedProps.assignee,
 					remarks: event.extendedProps.remarks
@@ -149,8 +180,7 @@
 				this.dialogOptions = {
 					visible: true,
 					optionFlag: 'Edit',
-					title: "View Detail",
-					submitFn: this.submitEdit
+					title: "View Detail"
 				}
 			},
 			handleDialogClose: function(done) {
@@ -169,8 +199,7 @@
 				this.resetForm();
 				this.dialogOptions = {
 					visible: true,
-					title: "Create",
-					submitFn: this.submitCreate
+					title: "Create"
 				}
 			},
 			timeSlotCreate: function(arg) {
@@ -184,18 +213,20 @@
 				this.dialogOptions = {
 					visible: true,
 					optionFlag: 'Create',
-					title: "Create",
-					submitFn: this.submitCreate
+					title: "Create"
 				}
 			},
 			timeSlotEdit: function() {
 				let newEvents = []
+				let calendarApi = this.$refs.fullCalendar.getApi();
+				// let events = calendarApi.getEvents()
 				events.forEach(item => {
 					item.editable = true;
 					newEvents.push(item);
 				})
-				let calendarApi = this.$refs.fullCalendar.getApi();
 				calendarApi.setOption('events', newEvents);
+				calendarApi.setOption('selectable', false);
+				calendarApi.setOption('eventClick', () => {});
 			},
 			timeSlotDelete: function() {
 				let calendarApi = this.$refs.fullCalendar.getApi();
@@ -227,16 +258,22 @@
 						let calendarApi = this.$refs.fullCalendar.getApi();
 						calendarApi.addEvent({
 							id: events.length,
-							title: this.pageForm.title,
+							title: this.pageForm.name + "(PENDING)",
 							start: dateRange.begin,
 							end: dateRange.end,
 							className: ["bg-normal"],
 							allDay: true,
-							location: this.pageForm.location,
-							assignee: this.pageForm.assignee,
-							remarks: this.pageForm.remarks
+							extendedProps: {
+								name: this.pageForm.name,
+								status: "PENDING",
+								reminder: this.pageForm.reminder,
+								cycle: this.pageForm.cycle,
+								location: this.pageForm.location,
+								assignee: this.pageForm.assignee,
+								remarks: this.pageForm.remarks
+							}
 						})
-						console.log(calendarApi.getEvents());
+
 						this.dialogOptions.visible = false;
 					} else {
 						console.log('error submit!!');
@@ -253,15 +290,18 @@
 							type: "toCalender"
 						});
 						let calendarApi = this.$refs.fullCalendar.getApi();
-						// let events = calendarApi.getEvents();
 						let event = calendarApi.getEventById(this.pageForm.id);
-						event.setProp("title", this.pageForm.title);
+						console.log(event.extendedProps)
+						event.setProp("title", this.pageForm.name + "(" + event.extendedProps.status + ")");
 						event.setDates(
 							dateRange.begin,
 							dateRange.end, {
 								allDay: true
 							},
 						);
+						event.setExtendedProp("name", this.pageForm.name);
+						event.setExtendedProp("reminder", this.pageForm.reminder);
+						event.setExtendedProp("cycle", this.pageForm.cycle);
 						event.setExtendedProp("location", this.pageForm.location);
 						event.setExtendedProp("assignee", this.pageForm.assignee);
 						event.setExtendedProp("remarks", this.pageForm.remarks);
@@ -276,6 +316,8 @@
 				this.pageForm = {
 					title: '',
 					dateRange: [],
+					reminder: false,
+					cycle: 0,
 					location: '',
 					assignee: '',
 					remarks: ''
@@ -337,6 +379,11 @@
 	.el-form .inp-small input {
 		width: 200px;
 	}
+
+	.el-form div[role="slider"] {
+		width: 350px;
+	}
+
 
 	.el-form textarea {
 		width: 350px;
