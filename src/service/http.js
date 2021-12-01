@@ -61,9 +61,16 @@ export default {
     name: "api",
     loading: false,
 
+    install (Vue) {
+        console.log('---------install Api Plugin-------')
+        Vue.api = this
+        Vue.prototype.$api = this
+    },
+
     $ (endpoint) {
         console.log('--------api endpoint:' + endpoint + '-----------')
-        let api = apiList[endpoint]
+        if( !apiList[process.env.NODE_ENV]) { console.log('----------no env api list------------');return false; }
+        let api = apiList[process.env.NODE_ENV][endpoint]
         if (!api) { console.log('--------no endpoint---------');return false; }
         return this.request(api.method, api.url)
     },

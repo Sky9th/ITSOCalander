@@ -1,0 +1,20 @@
+{
+    "code": 2000,
+    "msg": "SUCCESS",
+    "data": {
+        "eventId": 26,
+        "eventName": "Ever Green Update",
+        "eventTypeDesc": "MONTHLY",
+        "taskId": "5af87900593b42da8bd0480aa7f4166c",
+        "location": "GZ Room 20F Update",
+        "assignee": "Tabor Update",
+        "remarks": "please help on it, thanks!",
+        "eventStatusDesc": "PENDING",
+        "reminderFlag": "Y",
+        "startDateTime": "2021-12-02 00:00:00",
+        "endDateTime": "2022-12-30 23:59:59",
+        "createDatetime": "2021-12-18 00:11:00",
+        "updateDatetime": "2021-11-30 21:02:08",
+        "riskStatusDesc": "NORMAL"
+    }
+}
