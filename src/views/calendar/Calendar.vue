@@ -122,9 +122,9 @@
 					remarks: ''
 				},
 				formRules: {
-					title: [{
+					name: [{
 						required: true,
-						message: 'Title could not empty',
+						message: 'Name could not empty',
 						trigger: 'blur'
 					}],
 					dateRange: [{
@@ -373,7 +373,7 @@
 	}
 </script>
 
-<style scoped>
+<style>
 	.bg-fire {
 		background-color: #ff4949;
 		border: none;
