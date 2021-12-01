@@ -8,8 +8,20 @@ export var apiList = {
             url: '/Register.json',
             method: 'get'
         },
-        'ListEvents': {
+        'listEvents': {
             url: '/ListEvents.json',
+            method: 'get'
+        },
+        'createEvents': {
+            url: '/CreateEvent.json',
+            method: 'get'
+        },
+        'amendEvent': {
+            url: '/AmendEvent.json',
+            method: 'get'
+        },
+        'deleteEvent': {
+            url: '/DeleteEvent.json?a={a}&b={b}',
             method: 'get'
         }
     },
@@ -22,9 +34,21 @@ export var apiList = {
             url: '/Register.json',
             method: 'post'
         },
-        'ListEvents': {
-            url: '/ListEvents.json',
+        'listEvents': {
+            url: '/v1/canlander-event',
             method: 'get'
+        },
+        'createEvents': {
+            url: 'v1/canlander-event',
+            method: 'post'
+        },
+        'amendEvent': {
+            url: 'v1/canlander-event/{eventId}',
+            method: 'put'
+        },
+        'deleteEvent': {
+            url: 'v1/canlander-event/{eventId}',
+            method: 'delete'
         }
     }
 }

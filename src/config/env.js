@@ -3,6 +3,6 @@ export var env = {
         baseURL: '/mock/',
     },
     'production': {
-        baseURL: '',
+        baseURL: 'http://localhost:9999/itso-canlander/api/',
     }
 }

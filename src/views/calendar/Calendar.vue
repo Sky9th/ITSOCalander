@@ -129,8 +129,7 @@
 			}
 		},
 		mounted() {
-			this.$api.$('ListEvents').then((val) => {
-				console.log(val)
+			this.$api.$('listEvents').then((val) => {
 				let resourceData = val.data.datas;
 				let calendar = this.$refs['fullCalendar'].getApi()
 				let color =['#4d4cff','#ff4d4d','#824da7','#ff924d','#ffff4d','#4da54e'];

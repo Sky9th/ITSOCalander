@@ -67,12 +67,26 @@ export default {
         Vue.prototype.$api = this
     },
 
-    $ (endpoint) {
+    $ (endpoint, data, param) {
         console.log('--------api endpoint:' + endpoint + '-----------')
         if( !apiList[process.env.NODE_ENV]) { console.log('----------no env api list------------');return false; }
         let api = apiList[process.env.NODE_ENV][endpoint]
         if (!api) { console.log('--------no endpoint---------');return false; }
-        return this.request(api.method, api.url)
+
+        let url = api.url;
+        let pattern  = new RegExp(/{(.*?)}/g);
+        let match = url.match(pattern)
+        let replace = param;
+        if (api.method == 'get') {
+            replace = Object.assign({}, data, param)
+        }
+        if (match && match.length > 0) {
+            match.forEach((val) => {
+                let p = val.match(/{(.*?)}/)
+                url = url.replace(val, replace[p[1]] ? replace[p[1]] : '')
+            })
+        }
+        return this.request(api.method, url, data, param)
     },
 
     request (method, url, data, param) {
