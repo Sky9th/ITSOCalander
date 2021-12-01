@@ -305,8 +305,7 @@
 			timeSlotEdit: function() {
 				this.editModel.events = []
 				let calendarApi = this.$refs.fullCalendar.getApi();
-				let oldEvents = calendarApi.getEvents()
-				console.log(oldEvents)
+				let oldEvents = calendarApi.getEvents();
 				oldEvents.forEach(item => {
 					this.editModel.events.push(item);
 					item.remove();
@@ -328,9 +327,8 @@
 					.then(() => {
 						this.$api.$(
 							'deleteEvent',
-							null, null, [{
-								key: "eventId",
-								value: this.pageForm.id
+							null, [{
+								eventId: this.pageForm.id
 							}]
 						).then(() => {
 							let calendarApi = this.$refs.fullCalendar.getApi();
@@ -425,9 +423,8 @@
 							startDateTime: this.formatDate(this.pageForm.dateRange[0]),
 							endDateTime: this.formatDate(this.pageForm.dateRange[1])
 						}
-						this.$api.$('amendEvent', request, null, null, [{
-							key: "eventId",
-							value: this.pageForm.id
+						this.$api.$('amendEvent', request, null, [{
+							eventId: this.pageForm.id
 						}]).then((response) => {
 							let data = response.data.data;
 							let dateRange = this.dateRangeChange({
@@ -500,7 +497,27 @@
 			},
 			formatDate: function(time) {
 				let date = new Date(time);
-				return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+				var o = {
+					"M+": date.getMonth() + 1, //月份 
+					"d+": date.getDate(), //日 
+					"h+": date.getHours(), //小时 
+					"m+": date.getMinutes(), //分 
+					"s+": date.getSeconds(), //秒 
+					"q+": Math.floor((date.getMonth() + 3) / 3), //季度 
+					"S": date.getMilliseconds() //毫秒 
+				};
+				let fmt = "yyyy-MM-DD"
+				if (/(y+)/.test(fmt)) {
+					fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+				}
+				for (var k in o) {
+					if (new RegExp("(" + k + ")").test(fmt)) {
+						fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[
+							k]).length)));
+					}
+				}
+				return fmt;
+				// return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
 			}
 		}
 	}

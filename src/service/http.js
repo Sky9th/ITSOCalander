@@ -86,12 +86,12 @@ export default {
                 url = url.replace(val, replace[p[1]] ? replace[p[1]] : '')
             })
         }
-		if(pathParam && pathParam.length > 0){
-			pathParam.forEach((val) => {
-				url = url.replace("{" + val.key + "}", val.value);
-			})
-		}
-		console.log(url)
+		
+		// if(pathParam && pathParam.length > 0){
+		// 	pathParam.forEach((val) => {
+		// 		url = url.replace("{" + val.key + "}", val.value);
+		// 	})
+		// }
         return this.request(api.method, url, data, param)
     },
 
