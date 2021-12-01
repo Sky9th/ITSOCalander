@@ -423,7 +423,7 @@
 							startDateTime: this.formatDate(this.pageForm.dateRange[0]),
 							endDateTime: this.formatDate(this.pageForm.dateRange[1])
 						}
-						this.$api.$('amendEvent', request, null, {
+						this.$api.$('amendEvent', request, {
 							eventId: this.pageForm.id
 						}).then((response) => {
 							let data = response.data.data;
