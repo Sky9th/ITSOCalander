@@ -4,17 +4,17 @@
 			<el-col :span="24" id="calendar-option">
 				<el-button @click="today">Today</el-button>
 				<el-button @click="timeSlot">Create</el-button>
-				<el-button @click="timeSlotEdit">Edit time slot</el-button>
+				<el-button @click="toEdit">Edit</el-button>
 			</el-col>
 		</el-row>
 		<el-row v-if="editModel.show" :gutter="5">
 			<el-col :span="24" id="edit-option">
-				<el-button @click="today">Cancel</el-button>
-				<el-button @click="timeSlot">Completely</el-button>
+				<el-button @click="cancelEdit">Cancel</el-button>
+				<el-button type="success" @click="completeEdit">Done</el-button>
 			</el-col>
 		</el-row>
 		<el-row :gutter="5">
-			<el-col :span="20" id="calendar-main">
+			<el-col :span="24" id="calendar-main">
 				<FullCalendar id="calendar" ref="fullCalendar" :options="calendarOptions" />
 			</el-col>
 		</el-row>
@@ -280,6 +280,37 @@
 				let calendarApi = this.$refs.fullCalendar.getApi();
 				calendarApi.today();
 			},
+			toEdit: function() {
+				this.editModel.events = []
+				let calendarApi = this.$refs.fullCalendar.getApi();
+				let oldEvents = calendarApi.getEvents();
+				oldEvents.forEach(item => {
+					this.editModel.events.push(item);
+					// item.remove();
+				})
+				// calendarApi.setOption('events', this.editModel.events);
+				calendarApi.setOption('editable', true);
+				calendarApi.setOption('selectable', false);
+				calendarApi.setOption('eventClick', () => {});
+				this.editModel.show = true;
+			},
+			completeEdit: function() {
+				this.$alert('Coming soon!', 'success', {
+					confirmButtonText: 'Comfirm'
+				});
+			},
+			cancelEdit: function() {
+				let calendarApi = this.$refs.fullCalendar.getApi();
+				let oldEvents = calendarApi.getEvents();
+				oldEvents.forEach(item => {
+					item.remove();
+				})
+				calendarApi.setOption('events', this.editModel.events);
+				calendarApi.setOption('editable', false);
+				calendarApi.setOption('selectable', true);
+				calendarApi.setOption('eventClick', this.handleEventClick);
+				this.editModel.show = false;
+			},
 			timeSlot: function() {
 				this.resetForm();
 				this.dialogOptions = {
@@ -301,20 +332,6 @@
 					optionFlag: 'Create',
 					title: "Create"
 				}
-			},
-			timeSlotEdit: function() {
-				this.editModel.events = []
-				let calendarApi = this.$refs.fullCalendar.getApi();
-				let oldEvents = calendarApi.getEvents();
-				oldEvents.forEach(item => {
-					this.editModel.events.push(item);
-					item.remove();
-				})
-				calendarApi.setOption('events', this.editModel.events);
-				calendarApi.setOption('editable', true);
-				calendarApi.setOption('selectable', false);
-				calendarApi.setOption('eventClick', () => {});
-				this.editModel.show = true;
 			},
 			timeSlotDelete: function() {
 				this.$confirm(
@@ -579,5 +596,14 @@
 	.fc-h-event .fc-event-title {
 		word-break: break-all;
 		white-space: break-spaces;
+	}
+
+	#edit-option {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	#calendar-main {
+		margin-top: 10px;
 	}
 </style>
