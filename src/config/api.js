@@ -21,7 +21,7 @@ export var apiList = {
             method: 'get'
         },
         'deleteEvent': {
-            url: '/DeleteEvent.json?a={a}&b={b}',
+            url: '/DeleteEvent.json?{eventId}={eventId}&b={b}',
             method: 'get'
         }
     },

@@ -91,6 +91,7 @@ export default {
 				url = url.replace("{" + val.key + "}", val.value);
 			})
 		}
+		console.log(url)
         return this.request(api.method, url, data, param)
     },
 

@@ -328,9 +328,10 @@
 					.then(() => {
 						this.$api.$(
 							'deleteEvent',
-							null, {
-								id: this.pageForm.id
-							},
+							null, null, [{
+								key: "eventId",
+								value: this.pageForm.id
+							}]
 						).then(() => {
 							let calendarApi = this.$refs.fullCalendar.getApi();
 							let event = calendarApi.getEventById(this.pageForm.id);
@@ -424,7 +425,10 @@
 							startDateTime: this.formatDate(this.pageForm.dateRange[0]),
 							endDateTime: this.formatDate(this.pageForm.dateRange[1])
 						}
-						this.$api.$('amendEvent', request,this.pageForm.id).then((response) => {
+						this.$api.$('amendEvent', request, null, null, [{
+							key: "eventId",
+							value: this.pageForm.id
+						}]).then((response) => {
 							let data = response.data.data;
 							let dateRange = this.dateRangeChange({
 								begin: data.startDateTime,
