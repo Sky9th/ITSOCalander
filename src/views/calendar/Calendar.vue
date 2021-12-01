@@ -92,7 +92,13 @@
 					// 	week: '周',
 					// 	day: '天'
 					// },
-					events: events
+					events: events,
+					dayMaxEventRows: true, // for all non-TimeGrid views
+					views: {
+						dayGrid: {
+							dayMaxEventRows: 2 // adjust to 6 only for timeGridWeek/timeGridDay
+						}
+					}
 				},
 				dialogOptions: {
 					visible: false,
@@ -121,6 +127,24 @@
 					}]
 				}
 			}
+		},
+		mounted() {
+			this.$api.$('ListEvents').then((val) => {
+				console.log(val)
+				let resourceData = val.data.datas;
+				let calendar = this.$refs['fullCalendar'].getApi()
+				let color =['#4d4cff','#ff4d4d','#824da7','#ff924d','#ffff4d','#4da54e'];
+				resourceData.forEach((val, index)=>{
+					let obj ={
+						title: val.eventName,
+						start: val.startDateTime,
+						end: val.endDateTime,
+						color: color[index % 6]
+					}
+					calendar.addEvent(obj);
+				})
+				this.$api.hideLoading()
+			})
 		},
 		methods: {
 			handleDateClick: function(arg) {

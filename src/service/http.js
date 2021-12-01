@@ -64,6 +64,7 @@ export default {
     install (Vue) {
         console.log('---------install Api Plugin-------')
         Vue.api = this
+        Vue.prototype.$api = this
     },
 
     $ (endpoint) {

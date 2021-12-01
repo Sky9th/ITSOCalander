@@ -6,8 +6,9 @@
                     <el-button size="mini" type="primary" icon="el-icon-plus"></el-button>
                 </el-button-group>
 
-                <div class="avatar" v-if="sessionKey">
-                    <el-avatar :size="30"><i class="el-icon-user-solid"></i></el-avatar>
+                {{sessionKey}}
+                <div class="avatar" @click="logoff()" v-if="sessionKey">
+                    <el-avatar :size="30" class="avatar-item" title="logoff"><i class="el-icon-user-solid"></i></el-avatar>
                 </div>
                 <el-button-group v-else>
                     <el-button size="mini" type="default" @click="loginDialogVisible = !loginDialogVisible">Sign in</el-button>
@@ -53,8 +54,6 @@
 </template>
 
 <script>
-    import Vue from 'vue';
-    import store from '~/store/index'
     import { mapState } from 'vuex'
 
     export default {
@@ -70,7 +69,6 @@
             }
         },
         computed: mapState([
-            // 映射 this.count 为 store.state.count
             'sessionKey'
         ]),
         mounted() {
@@ -78,15 +76,20 @@
         methods: {
             logon () {
                 this.loginDialogVisible = false;
-                Vue.api.$('login', this.form).then(this.session)
+                this.$api.$('login', this.form).then(this.session)
             },
             register () {
                 this.registerDialogVisible = false;
-                Vue.api.$('register', this.form).then(this.session)
+                this.$api.$('register', this.form).then(this.session)
             },
             session (val) {
-                store.commit('login', val.data.data.sessionKey)
-                Vue.api.hideLoading();
+                this.$store.commit('login', val.data.data.sessionKey)
+                window.localStorage.setItem('sessionKey', val.data.data.sessionKey)
+                this.$api.hideLoading();
+            },
+            logoff () {
+                this.$store.commit('login', null)
+                window.localStorage.removeItem('sessionKey');
             }
         }
     }
@@ -95,4 +98,6 @@
 <style>
     .top-bar .el-card__body { padding:10px; }
     .top-bar-content { display: flex; justify-content: space-between; width: 100%; }
+
+    .avatar-item { cursor: pointer }
 </style>

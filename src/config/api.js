@@ -1,30 +1,30 @@
 export var apiList = {
     "development": {
-        'eventList': {
-            url: '/eventList.json',
-            method: 'get'
-        },
         'login': {
-            url: '/login.json',
+            url: '/Login.json',
             method: 'get'
         },
         'register': {
-            url: '/register.json',
+            url: '/Register.json',
+            method: 'get'
+        },
+        'ListEvents': {
+            url: '/ListEvents.json',
             method: 'get'
         }
     },
     "production": {
-        'eventList': {
-            url: '/eventList.json',
-            method: 'get'
-        },
         'login': {
-            url: '/login.json',
+            url: '/Login.json',
             method: 'post'
         },
         'register': {
-            url: '/register.json',
+            url: '/Register.json',
             method: 'post'
+        },
+        'ListEvents': {
+            url: '/ListEvents.json',
+            method: 'get'
         }
     }
 }
