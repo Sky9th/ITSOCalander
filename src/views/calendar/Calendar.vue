@@ -27,7 +27,7 @@
 					<el-switch v-model="pageForm.reminder" active-color="#13ce66"></el-switch>
 				</el-form-item>
 				<el-form-item label="Cycle">
-					<el-slider v-model="pageForm.cycle" :step="1" :max="4" :format-tooltip="this.getCycleValue"
+					<el-slider v-model="pageForm.cycle" :step="1" :max="4" :format-tooltip="this.getCycleTip"
 						show-stops></el-slider>
 				</el-form-item>
 				<el-form-item label="Assignee" class='inp-small'>
@@ -54,10 +54,10 @@
 </template>
 
 <script>
-    import '@fullcalendar/core/vdom' // solves problem with Vite
-    import FullCalendar from '@fullcalendar/vue'
-    import dayGridPlugin from '@fullcalendar/daygrid'
-    import interactionPlugin from '@fullcalendar/interaction'
+	import '@fullcalendar/core/vdom' // solves problem with Vite
+	import FullCalendar from '@fullcalendar/vue'
+	import dayGridPlugin from '@fullcalendar/daygrid'
+	import interactionPlugin from '@fullcalendar/interaction'
 
 	let events = [];
 	// let calendarEl = document.getElementById('calendar');
@@ -99,10 +99,10 @@
 					// 	day: '天'
 					// },
 					events: events,
-					dayMaxEventRows: true, // for all non-TimeGrid views
+					// dayMaxEventRows: true, // for all non-TimeGrid views
 					views: {
 						dayGrid: {
-							dayMaxEventRows: 2 // adjust to 6 only for timeGridWeek/timeGridDay
+							// dayMaxEventRows: 2 // adjust to 6 only for timeGridWeek/timeGridDay
 						}
 					}
 				},
@@ -139,44 +139,100 @@
 			this.$api.$('listEvents').then((val) => {
 				let resourceData = val.data.datas;
 				let calendar = this.$refs['fullCalendar'].getApi()
-				let color =['#4d4cff','#ff4d4d','#824da7','#ff924d','#ffff4d','#4da54e'];
-				resourceData.forEach((val, index)=>{
-					let obj ={
-						title: val.eventName,
-						start: val.startDateTime,
-						end: val.endDateTime,
-						color: color[index % 6]
+				// let color = ['#4d4cff', '#ff4d4d', '#824da7', '#ff924d', '#ffff4d', '#4da54e'];
+				resourceData.forEach((data) => {
+					let dateRange = this.dateRangeChange({
+						begin: data.startDateTime,
+						end: data.endDateTime,
+						type: "toCalender"
+					})
+					let obj = {
+						id: data.eventId,
+						title: data.eventName + "(" + data.eventStatusDesc + ")",
+						start: dateRange.begin,
+						end: dateRange.end,
+						className: [this.getEventColor(data.riskStatusDesc)],
+						allDay: true,
+						extendedProps: {
+							name: data.eventName,
+							status: data.eventStatusDesc,
+							reminder: data.reminderFlag === "Y",
+							cycle: this.getCycleValue(data.eventTypeDesc).id,
+							location: data.location,
+							assignee: data.assignee,
+							remarks: data.remarks
+						}
 					}
+					console.log(obj)
 					calendar.addEvent(obj);
 				})
 				this.$api.hideLoading()
 			})
 		},
 		methods: {
-			getCycleValue: function(step) {
-				let name = ""
-				switch (step) {
-					case 1:
-						name = "Weekly";
+			getCycleTip: function(step) {
+				return this.getCycleValue(step).name;
+			},
+			getCycleValue: function(key) {
+				let cycleModel = {
+					id: -1,
+					key: "",
+					name: ""
+				}
+				let cycleLsit = [{
+					id: 0,
+					key: "ONETIME",
+					name: "OneTime"
+				}, {
+					id: 1,
+					key: "WEEKLY",
+					name: "Weekly"
+				}, {
+					id: 2,
+					key: "MONTHLY",
+					name: "Monthly"
+				}, {
+					id: 3,
+					key: "QUARTERLY",
+					name: "Quarterly"
+				}, {
+					id: 4,
+					key: "YEARLY",
+					name: "Yearly"
+				}];
+				for (let cycle of cycleLsit) {
+
+					if (cycle.id === key || cycle.key === key || cycle.name === key) {
+						cycleModel = cycle;
+					}
+				}
+				return cycleModel;
+			},
+			getEventColor: function(status) {
+				console.log(status)
+				let colorClass;
+				switch (status) {
+					case "NORMAL":
+						colorClass = "bg-normal";
 						break;
-					case 2:
-						name = "Monthly";
+					case "LOW":
+						colorClass = "bg-low";
 						break;
-					case 3:
-						name = "Quarterly,";
+					case "MEDIUM":
+						colorClass = "bg-medium";
 						break;
-					case 4:
-						name = "Yearly";
+					case "HIGH":
+						colorClass = "bg-high";
 						break;
-					case 0:
+					case "CRITIAL":
+						colorClass = "bg-fire";
+						break;
 					default:
-						name = "OneTime";
 						break;
 				}
-				return name;
+				return colorClass
 			},
 			handleDateClick: function(arg) {
-				// let calendarApi = this.$refs.fullCalendar.getApi();
 				console.log('date click! ' + arg.dateStr);
 			},
 			handleEventClick: function(dom) {
@@ -192,7 +248,7 @@
 					name: event.extendedProps.name,
 					dateRange: [dateRange.begin, dateRange.end],
 					reminder: event.extendedProps.reminder,
-					cycle: event.extendedProps.cycle,
+					cycle: this.getCycleValue(event.extendedProps.cycle).id,
 					location: event.extendedProps.location,
 					assignee: event.extendedProps.assignee,
 					remarks: event.extendedProps.remarks
@@ -219,6 +275,7 @@
 				this.resetForm();
 				this.dialogOptions = {
 					visible: true,
+					optionFlag: 'Create',
 					title: "Create"
 				}
 			},
@@ -249,52 +306,93 @@
 				calendarApi.setOption('eventClick', () => {});
 			},
 			timeSlotDelete: function() {
-				let calendarApi = this.$refs.fullCalendar.getApi();
-				let event = calendarApi.getEventById(this.pageForm.id);
 				this.$confirm(
-					'Are you sure you want to delete it？',
-					'Delete Eevent', {
-						confirmButtonText: 'sure',
-						cancelButtonText: 'cancle',
-						type: 'warning'
-					}).then(() => {
-					event.remove();
-					this.resetForm();
-					this.dialogOptions.visible = false;
-					this.$message({
-						type: 'success',
-						message: 'Have deleted!'
+						'Are you sure you want to delete it？',
+						'Delete Eevent', {
+							confirmButtonText: 'sure',
+							cancelButtonText: 'cancle',
+							type: 'warning'
+						})
+					.then(() => {
+						this.$api.$(
+							'deleteEvent',
+							null, {
+								id: this.pageForm.id
+							},
+						).then(() => {
+							let calendarApi = this.$refs.fullCalendar.getApi();
+							let event = calendarApi.getEventById(this.pageForm.id);
+							event.remove();
+							this.resetForm();
+							this.dialogOptions.visible = false;
+							this.$message({
+								type: 'success',
+								message: 'Have deleted!'
+							});
+							this.$api.hideLoading()
+						})
 					});
-				});
 			},
 			submitCreate: function() {
 				this.$refs['pageForm'].validate((valid) => {
 					if (valid) {
-						let dateRange = this.dateRangeChange({
-							begin: this.pageForm.dateRange[0],
-							end: this.pageForm.dateRange[1],
-							type: "toCalender"
-						})
-						let calendarApi = this.$refs.fullCalendar.getApi();
-						calendarApi.addEvent({
-							id: events.length,
-							title: this.pageForm.name + "(PENDING)",
-							start: dateRange.begin,
-							end: dateRange.end,
-							className: ["bg-normal"],
-							allDay: true,
-							extendedProps: {
-								name: this.pageForm.name,
-								status: "PENDING",
-								reminder: this.pageForm.reminder,
-								cycle: this.pageForm.cycle,
-								location: this.pageForm.location,
-								assignee: this.pageForm.assignee,
-								remarks: this.pageForm.remarks
-							}
-						})
+						let request = {
+							eventName: this.pageForm.name,
+							eventTypeDesc: this.getCycleValue(this.pageForm.cycle).key,
+							location: this.pageForm.location,
+							assignee: this.pageForm.assignee,
+							remarks: this.pageForm.remarks,
+							reminderFlag: this.pageForm.reminder ? "Y" : "N",
+							startDateTime: this.formatDate(this.pageForm.dateRange[0]),
+							endDateTime: this.formatDate(this.pageForm.dateRange[1])
+						}
 
-						this.dialogOptions.visible = false;
+						this.$api.$('createEvents', request).then((response) => {
+							let data = response.data.data;
+							let dateRange = this.dateRangeChange({
+								begin: data.startDateTime,
+								end: data.endDateTime,
+								type: "toCalender"
+							})
+							let calendarApi = this.$refs.fullCalendar.getApi();
+							calendarApi.addEvent({
+								id: data.eventId,
+								title: data.eventName + "(" + data.eventStatusDesc + ")",
+								start: dateRange.begin,
+								end: dateRange.end,
+								className: [this.getEventColor(data.riskStatusDesc)],
+								allDay: true,
+								extendedProps: {
+									name: data.eventName,
+									status: data.eventStatusDesc,
+									reminder: data.reminderFlag === "Y",
+									cycle: this.getCycleValue(data.eventTypeDesc).id,
+									location: data.location,
+									assignee: data.assignee,
+									remarks: data.remarks
+								}
+							})
+							// For input data
+							/*calendarApi.addEvent({
+								id: events.length,
+								title: this.pageForm.name + "(PENDING)",
+								start: dateRange.begin,
+								end: dateRange.end,
+								className: ["bg-normal"],
+								allDay: true,
+								extendedProps: {
+									name: this.pageForm.name,
+									status: "PENDING",
+									reminder: this.pageForm.reminder,
+									cycle: this.pageForm.cycle,
+									location: this.pageForm.location,
+									assignee: this.pageForm.assignee,
+									remarks: this.pageForm.remarks
+								}
+							})*/
+							this.dialogOptions.visible = false;
+							this.$api.hideLoading()
+						})
 					} else {
 						console.log('error submit!!');
 						return false;
@@ -304,28 +402,43 @@
 			submitEdit: function() {
 				this.$refs['pageForm'].validate((valid) => {
 					if (valid) {
-						let dateRange = this.dateRangeChange({
-							begin: this.pageForm.dateRange[0],
-							end: this.pageForm.dateRange[1],
-							type: "toCalender"
-						});
-						let calendarApi = this.$refs.fullCalendar.getApi();
-						let event = calendarApi.getEventById(this.pageForm.id);
-						console.log(event.extendedProps)
-						event.setProp("title", this.pageForm.name + "(" + event.extendedProps.status + ")");
-						event.setDates(
-							dateRange.begin,
-							dateRange.end, {
-								allDay: true
-							},
-						);
-						event.setExtendedProp("name", this.pageForm.name);
-						event.setExtendedProp("reminder", this.pageForm.reminder);
-						event.setExtendedProp("cycle", this.pageForm.cycle);
-						event.setExtendedProp("location", this.pageForm.location);
-						event.setExtendedProp("assignee", this.pageForm.assignee);
-						event.setExtendedProp("remarks", this.pageForm.remarks);
-						this.dialogOptions.visible = false;
+						let request = {
+							eventName: this.pageForm.name,
+							eventTypeDesc: this.getCycleValue(this.pageForm.cycle).key,
+							location: this.pageForm.location,
+							assignee: this.pageForm.assignee,
+							remarks: this.pageForm.remarks,
+							reminderFlag: this.pageForm.reminder ? "Y" : "N",
+							startDateTime: this.formatDate(this.pageForm.dateRange[0]),
+							endDateTime: this.formatDate(this.pageForm.dateRange[1])
+						}
+						this.$api.$('amendEvent', request).then((response) => {
+							let data = response.data.data;
+							let dateRange = this.dateRangeChange({
+								begin: data.startDateTime,
+								end: data.endDateTime,
+								type: "toCalender"
+							});
+
+							let calendarApi = this.$refs.fullCalendar.getApi();
+							let event = calendarApi.getEventById(data.eventId);
+							event.setProp("title", data.eventName + "(" + data.eventStatusDesc + ")");
+							event.setDates(
+								dateRange.begin,
+								dateRange.end, {
+									allDay: true
+								},
+							);
+							event.setExtendedProp("name", data.eventName);
+							event.setExtendedProp("status", data.eventStatusDesc);
+							event.setExtendedProp("reminder", data.reminderFlag === "Y");
+							event.setExtendedProp("cycle", this.getCycleValue(data.eventTypeDesc).id);
+							event.setExtendedProp("location", data.location);
+							event.setExtendedProp("assignee", data.assignee);
+							event.setExtendedProp("remarks", data.remarks);
+							this.dialogOptions.visible = false;
+							this.$api.hideLoading()
+						})
 					} else {
 						console.log('error submit!!');
 						return false;
@@ -368,16 +481,39 @@
 					dateRange.end = new Date(Date.parse(param.end) - oneDay)
 				}
 				return dateRange;
+			},
+			formatDate: function(time) {
+				let date = new Date(time);
+				return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
 			}
 		}
 	}
 </script>
 
 <style>
-	.bg-fire {
-		background-color: #ff4949;
+	.bg-normal,
+	.bg-low,
+	.bg-medium,
+	.bg-high,
+	.bg-fire{
 		border: none;
 		padding: 0 10px;
+	}
+	.bg-normal {
+		background-color: #a7a7a7;
+	}
+	.bg-low {
+		background-color: #3788d8;
+	}
+	.bg-medium {
+		background-color: #ffff4d;
+		color: #000000;
+	}
+	.bg-high {
+		background-color: #ff924d;
+	}
+	.bg-fire {
+		background-color: #ff4949;
 	}
 
 	.el-form input {
