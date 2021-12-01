@@ -2,6 +2,7 @@
 const resolve = require('path').resolve
 
 module.exports = {
+    publicPath: '/',
     configureWebpack: {
         plugins: [
         ],
