@@ -327,9 +327,9 @@
 					.then(() => {
 						this.$api.$(
 							'deleteEvent',
-							null, [{
+							null, {
 								eventId: this.pageForm.id
-							}]
+							}
 						).then(() => {
 							let calendarApi = this.$refs.fullCalendar.getApi();
 							let event = calendarApi.getEventById(this.pageForm.id);
@@ -423,9 +423,9 @@
 							startDateTime: this.formatDate(this.pageForm.dateRange[0]),
 							endDateTime: this.formatDate(this.pageForm.dateRange[1])
 						}
-						this.$api.$('amendEvent', request, null, [{
+						this.$api.$('amendEvent', request, null, {
 							eventId: this.pageForm.id
-						}]).then((response) => {
+						}).then((response) => {
 							let data = response.data.data;
 							let dateRange = this.dateRangeChange({
 								begin: data.startDateTime,
@@ -506,9 +506,9 @@
 					"q+": Math.floor((date.getMonth() + 3) / 3), //季度 
 					"S": date.getMilliseconds() //毫秒 
 				};
-				let fmt = "yyyy-MM-DD"
+				let fmt = "yyyy-MM-dd hh:mm:ss"
 				if (/(y+)/.test(fmt)) {
-					fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+					fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
 				}
 				for (var k in o) {
 					if (new RegExp("(" + k + ")").test(fmt)) {
