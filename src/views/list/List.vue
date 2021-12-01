@@ -45,7 +45,7 @@
             }
         },
         mounted() {
-            this.$api.$('ListEvents').then((val) => {
+            this.$api.$('listEvents').then((val) => {
                 this.tableData = val.data.datas;
                 this.$api.hideLoading();
             })
