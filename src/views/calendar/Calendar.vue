@@ -32,7 +32,7 @@
 				<el-form-item label="Reminder">
 					<el-switch v-model="pageForm.reminder" active-color="#13ce66"></el-switch>
 				</el-form-item>
-				<el-form-item label="Cycle">
+				<el-form-item label="Event type">
 					<el-slider v-model="pageForm.cycle" :step="1" :max="4" :format-tooltip="this.getCycleTip"
 						show-stops></el-slider>
 				</el-form-item>
@@ -286,9 +286,7 @@
 				let oldEvents = calendarApi.getEvents();
 				oldEvents.forEach(item => {
 					this.editModel.events.push(item);
-					// item.remove();
 				})
-				// calendarApi.setOption('events', this.editModel.events);
 				calendarApi.setOption('editable', true);
 				calendarApi.setOption('selectable', false);
 				calendarApi.setOption('eventClick', () => {});
@@ -305,7 +303,10 @@
 				oldEvents.forEach(item => {
 					item.remove();
 				})
-				calendarApi.setOption('events', this.editModel.events);
+				this.editModel.events.forEach(event => {
+					calendarApi.addEvent(event);
+				})
+				
 				calendarApi.setOption('editable', false);
 				calendarApi.setOption('selectable', true);
 				calendarApi.setOption('eventClick', this.handleEventClick);
