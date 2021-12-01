@@ -5,7 +5,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    sessionKey: null
+    sessionKey: window.localStorage.getItem('sessionKey')
   },
   mutations: {
     login (state, sessionKey) {
